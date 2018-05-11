@@ -35,11 +35,14 @@ export default class Commutes extends Component {
     var request = {
       origins: [this.props.origin],
       destinations: this.state.destinations,
-      travelMode: 'DRIVING'
+      travelMode: 'DRIVING',
+      drivingOptions: {
+        departureTime: new Date(Date.now()),  // for the time N milliseconds from now.
+        trafficModel: 'bestguess'
+      }
     }
     service.getDistanceMatrix(request, (response) => {
-      const times = response.rows[0].elements.map(element => element.duration.text);
-      console.log(times);
+      const times = response.rows[0].elements.map(element => element.duration_in_traffic.text);
       this.setState({ times: times });
     });
   }
@@ -67,6 +70,7 @@ export default class Commutes extends Component {
         {this.state.destinations.map((destination, key) =>
           <CommuteInfo
             key={key}
+            origin={this.props.origin}
             destination={destination}
             time={this.state.times[key]}
             onDelete={this.removeCommute} />
