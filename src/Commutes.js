@@ -1,30 +1,24 @@
 import React, { Component } from 'react';
 import CommuteInfo from './CommuteInfo.js';
-import AddCommuteButton from './AddCommuteButton.js';
 
 export default class Commutes extends Component {
   constructor(props) {
     super(props);
-    var destinations = this.loadDestinations();
     this.state = {
-      destinations: destinations ? destinations : [],
       times: []
     };
   }
 
   componentDidMount() {
-    if (this.props.origin && this.state.destinations.length > 0) {
+    if (this.props.origin && this.props.destinations.length > 0) {
       this.fetchTimes();
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.props.origin && this.state.destinations.length > 0 &&
-      (this.props.origin !== prevProps.origin || this.state.destinations !== prevState.destinations)) {
+    if (this.props.origin && this.props.destinations.length > 0 &&
+      (this.props.origin !== prevProps.origin || this.props.destinations !== prevProps.destinations)) {
       this.fetchTimes();
-    }
-    if (this.state.destinations !== prevState.destinations) {
-      this.saveDestinations();
     }
   }
 
@@ -34,10 +28,10 @@ export default class Commutes extends Component {
     var service = new window.google.maps.DistanceMatrixService();
     var request = {
       origins: [this.props.origin],
-      destinations: this.state.destinations,
+      destinations: this.props.destinations,
       travelMode: 'DRIVING',
       drivingOptions: {
-        departureTime: new Date(Date.now()),  // for the time N milliseconds from now.
+        departureTime: new Date(Date.now()),
         trafficModel: 'bestguess'
       }
     }
@@ -47,35 +41,18 @@ export default class Commutes extends Component {
     });
   }
 
-  saveDestinations = () => {
-    localStorage.setItem("destinations", JSON.stringify(this.state.destinations));
-  }
-
-  loadDestinations = () => {
-    return JSON.parse(localStorage.getItem("destinations"));
-  }
-
-  addCommute = (address) => {
-    this.setState({ destinations: [...this.state.destinations, address] });
-  }
-
-  removeCommute = (index) => {
-    this.state.destinations.splice(index, 1);
-    this.setState({ destinations: this.state.destinations.slice() });
-  }
-
   render() {
     return (
       <div>
-        {this.state.destinations.map((destination, key) =>
+        {this.props.destinations.map((destination, key) =>
           <CommuteInfo
             key={key}
+            index={key}
             origin={this.props.origin}
             destination={destination}
             time={this.state.times[key]}
-            onDelete={this.removeCommute} />
+            onDelete={this.props.onRemoveCommute} />
         )}
-        <AddCommuteButton onAddCommute={this.addCommute} />
       </div>
     );
   }
